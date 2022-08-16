@@ -1,5 +1,9 @@
-import React from "react";
+import axios from "axios";
+import React, { useState } from "react";
 import styled from "styled-components";
+import Modal from "./Modal";
+import { draftRoute } from "../utils/APIRoute";
+import { useQuery } from "react-query";
 
 const Container = styled.div`
   flex-basis: 75%;
@@ -31,6 +35,9 @@ const Container = styled.div`
     margin-right: 50px;
     padding: 20px;
     border: 1px solid #b2bec3;
+    &:hover {
+      box-shadow: 0px 0px 5px #444;
+    }
   }
   .card-name {
     font-size: 1.3rem;
@@ -53,18 +60,16 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
-interface CardProps {
+interface Draft {
   name: string;
   description: string;
-  createdAt: string;
 }
 
-const Card = ({ name, description, createdAt }: CardProps) => {
+const Card = ({ name, description }: Draft) => {
   return (
     <div className="card-container">
       <div className="card-name">{name}</div>
       <div className="card-description">
-        <p>Created At {createdAt}</p>
         <p>{description}</p>
       </div>
       <div className="card-tool"></div>
@@ -73,29 +78,43 @@ const Card = ({ name, description, createdAt }: CardProps) => {
 };
 
 const Space = () => {
-  const onClick = () => {};
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+
+  const onClick = () => {
+    setOpenModal(true);
+  };
+
+  const fetchDrafts = async () => {
+    const response = await axios.get(draftRoute);
+    const { data } = response;
+    return data.drafts;
+  };
+  const { data, isLoading } = useQuery("drafts", fetchDrafts, {
+    onSuccess: setDrafts,
+  });
+
+  if (isLoading) {
+    return <div>Loading..</div>;
+  }
+
   return (
     <Container>
       <div className="heading">My Draft</div>
       <div className="hr"></div>
       <Button onClick={onClick}>새 도안 만들기</Button>
       <div className="card-parent">
-        <Card
-          name="sample space"
-          description="a sample space for creating"
-          createdAt="7/30"
-        />
-        <Card
-          name="sample space"
-          description="a sample space for creating"
-          createdAt="7/30"
-        />
-        <Card
-          name="sample space"
-          description="a sample space for creating"
-          createdAt="7/30"
-        />
+        {drafts.map((draft: Draft, index: number) => {
+          return (
+            <Card
+              key={index}
+              name={draft.name}
+              description={draft.description}
+            />
+          );
+        })}
       </div>
+      {openModal && <Modal open={setOpenModal} />}
     </Container>
   );
 };

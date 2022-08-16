@@ -102,7 +102,7 @@ function Login() {
       email,
       password,
     };
-    const data = login(loginRoute, userData);
+    login(loginRoute, userData);
   };
 
   return (
