@@ -77,12 +77,8 @@ const Modal = ({ open }: Props) => {
   };
 
   const createDraft = async (draftRoute: string, draftData: DraftData) => {
-    try {
-      const response = await axios.post(draftRoute, draftData);
-      return response.data;
-    } catch (err) {
-      console.log(err);
-    }
+    const response = await axios.post(draftRoute, draftData);
+    return response.data;
   };
 
   const onSubmit = (e: React.FormEvent) => {

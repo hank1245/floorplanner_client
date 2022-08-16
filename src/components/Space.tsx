@@ -4,11 +4,16 @@ import styled from "styled-components";
 import Modal from "./Modal";
 import { draftRoute } from "../utils/APIRoute";
 import { useQuery } from "react-query";
+import { Link, useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   flex-basis: 75%;
   background-color: #dfe6e9;
   padding: 50px;
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
   .heading {
     font-size: 1.8rem;
     font-weight: 700;
@@ -35,6 +40,7 @@ const Container = styled.div`
     margin-right: 50px;
     padding: 20px;
     border: 1px solid #b2bec3;
+    cursor: pointer;
     &:hover {
       box-shadow: 0px 0px 5px #444;
     }
@@ -61,17 +67,21 @@ const Button = styled.button`
 `;
 
 interface Draft {
+  _id: string;
   name: string;
   description: string;
 }
 
-const Card = ({ name, description }: Draft) => {
+const Card = ({ name, description, _id }: Draft) => {
+  const onClick = () => {};
   return (
-    <div className="card-container">
-      <div className="card-name">{name}</div>
-      <div className="card-description">
-        <p>{description}</p>
-      </div>
+    <div className="card-container" onClick={onClick}>
+      <Link to={`/draw/${_id}`}>
+        <div className="card-name">{name}</div>
+        <div className="card-description">
+          <p>{description}</p>
+        </div>
+      </Link>
       <div className="card-tool"></div>
     </div>
   );
@@ -90,7 +100,7 @@ const Space = () => {
     const { data } = response;
     return data.drafts;
   };
-  const { data, isLoading } = useQuery("drafts", fetchDrafts, {
+  const { isLoading } = useQuery("drafts", fetchDrafts, {
     onSuccess: setDrafts,
   });
 
@@ -108,6 +118,7 @@ const Space = () => {
           return (
             <Card
               key={index}
+              _id={draft._id}
               name={draft.name}
               description={draft.description}
             />
