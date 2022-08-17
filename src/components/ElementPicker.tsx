@@ -1,5 +1,10 @@
 import React from "react";
 import styled from "styled-components";
+import { CgController } from "react-icons/cg";
+import { BsFillDoorOpenFill } from "react-icons/bs";
+import { MdOutlineSensors, MdWindow, MdHvac } from "react-icons/md";
+import { GiBrickWall } from "react-icons/gi";
+import { AiOutlineStop } from "react-icons/ai";
 
 const Container = styled.div`
   position: absolute;
@@ -8,10 +13,54 @@ const Container = styled.div`
   width: 250px;
   height: 300px;
   background-color: #bdc3c7;
+  flex-wrap: wrap;
+  display: flex;
 `;
 
-const ElementPicker = () => {
-  return <Container></Container>;
+const Icon = styled.div`
+  flex-basis: 50%;
+  padding-top: 30px;
+  text-align: center;
+  cursor: pointer;
+  svg {
+    pointer-events: none;
+  }
+`;
+
+interface Props {
+  setElement: (element: string) => void;
+}
+
+const ElementPicker = ({ setElement }: Props) => {
+  const onClick = (e: React.MouseEvent) => {
+    if (e.target instanceof Element) {
+      setElement(e.target.id);
+      console.log(e.target.id);
+    }
+  };
+
+  return (
+    <Container>
+      <Icon id="controller" onClick={(e) => onClick(e)}>
+        <CgController size={36} />
+      </Icon>
+      <Icon id="door" onClick={(e) => onClick(e)}>
+        <BsFillDoorOpenFill size={36} />
+      </Icon>
+      <Icon id="sensor" onClick={(e) => onClick(e)}>
+        <MdOutlineSensors size={36} />
+      </Icon>
+      <Icon id="window" onClick={(e) => onClick(e)}>
+        <MdWindow size={36} />
+      </Icon>
+      <Icon id="wall" onClick={(e) => onClick(e)}>
+        <GiBrickWall size={36} />
+      </Icon>
+      <Icon id="hvac" onClick={(e) => onClick(e)}>
+        <MdHvac size={36} />
+      </Icon>
+    </Container>
+  );
 };
 
 export default ElementPicker;

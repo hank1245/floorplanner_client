@@ -1,13 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import * as d3 from "d3";
-import styled from "styled-components";
-import ElementPicker from "../components/ElementPicker";
-
-const Container = styled.div`
-  background-color: #f5f6fa;
-  width: 150vw;
-  height: 100vh;
-`;
+import { ElementContext } from "../pages/Draw";
 
 const data = [
   [100, 30, 30],
@@ -16,9 +9,10 @@ const data = [
   [130, 500, 30],
 ];
 
-const Draw = () => {
+const Canvas = () => {
   //global varibales
   const svgRef = useRef();
+  const selected = useContext(ElementContext);
   const width = 1000;
   const height = 800;
   let [mt, mb, mr, ml] = [100, 100, 100, 100];
@@ -65,7 +59,6 @@ const Draw = () => {
       graph.style("stroke-width", 3 / Math.sqrt(transform.k));
       circles.attr("r", 20 / Math.sqrt(transform.k));
     });
-
     svg
       .call(zoom)
       .call(zoom.transform, d3.zoomIdentity)
@@ -76,52 +69,49 @@ const Draw = () => {
         d3.select(circles.nodes()[i]).raise();
       })
       .node();
-  });
+  }, []);
 
   //wall
-  useEffect(() => {}, []);
+  useEffect(() => {}, [selected]);
 
   return (
-    <Container>
-      <svg ref={svgRef} style={{ overflow: "visible" }}>
-        <g className="graph">
-          <g className="x-axis"></g>
-          <g className="y-axis"></g>
-          <defs>
-            <pattern
-              id="smallGrid"
-              width="10"
-              height="10"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 10 0 L 0 0 0 10"
-                fill="none"
-                stroke="gray"
-                strokeWidth="0.5"
-              />
-            </pattern>
-            <pattern
-              id="grid"
-              width="100"
-              height="100"
-              patternUnits="userSpaceOnUse"
-            >
-              <rect width="100" height="100" fill="url(#smallGrid)" />
-              <path
-                d="M 100 0 L 0 0 0 100"
-                fill="none"
-                stroke="gray"
-                strokeWidth="1"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" className="grid" />
-        </g>
-      </svg>
-      <ElementPicker />
-    </Container>
+    <svg ref={svgRef} style={{ overflow: "visible" }}>
+      <g className="graph">
+        <g className="x-axis"></g>
+        <g className="y-axis"></g>
+        <defs>
+          <pattern
+            id="smallGrid"
+            width="10"
+            height="10"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 10 0 L 0 0 0 10"
+              fill="none"
+              stroke="gray"
+              strokeWidth="0.5"
+            />
+          </pattern>
+          <pattern
+            id="grid"
+            width="100"
+            height="100"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="100" height="100" fill="url(#smallGrid)" />
+            <path
+              d="M 100 0 L 0 0 0 100"
+              fill="none"
+              stroke="gray"
+              strokeWidth="1"
+            />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" className="grid" />
+      </g>
+    </svg>
   );
 };
 
-export default Draw;
+export default Canvas;
