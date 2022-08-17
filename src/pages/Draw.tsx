@@ -15,7 +15,7 @@ const Draw = () => {
   const [element, setElement] = useState<string>("");
   const escFunction = useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {
-      console.log("keybod");
+      console.log("keyboard");
       setElement("");
     }
   }, []);

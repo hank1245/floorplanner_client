@@ -2,12 +2,7 @@ import { useContext, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { ElementContext } from "../pages/Draw";
 
-const data = [
-  [100, 30, 30],
-  [200, 300, 30],
-  [300, 200, 30],
-  [130, 500, 30],
-];
+const data = [[100, 30, 30]];
 
 const Canvas = () => {
   //global varibales
@@ -37,14 +32,7 @@ const Canvas = () => {
     svg.select(".x-axis").call(xAxis);
     svg.select(".y-axis").call(yAxis);
 
-    const circles = graph
-      .selectAll("circle")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("r", (d) => d[2])
-      .attr("cx", (d) => d[1] + 200)
-      .attr("cy", (d) => d[0]);
+    const circles = graph.selectAll("circle");
 
     //zoom in zoom out
     const delaunay = d3.Delaunay.from(
@@ -53,26 +41,62 @@ const Canvas = () => {
       (d) => yScale(d[1])
     );
     let transform;
+    if (selected == "") {
+      const zoom = d3.zoom().on("zoom", (e) => {
+        graph.attr("transform", (transform = e.transform));
+        graph.style("stroke-width", 3 / Math.sqrt(transform.k));
+      });
+      svg
+        .call(zoom)
+        .call(zoom.transform, d3.zoomIdentity)
+        .on("pointermove", (event) => {
+          const p = transform.invert(d3.pointer(event));
+          const i = delaunay.find(...p);
+          circles.classed("highlighted", (_, j) => i === j);
+          d3.select(circles.nodes()[i]).raise();
+        })
+        .node();
+    } else {
+      svg.on(".zoom", null);
+    }
+  }, [selected]);
 
-    const zoom = d3.zoom().on("zoom", (e) => {
-      graph.attr("transform", (transform = e.transform));
-      graph.style("stroke-width", 3 / Math.sqrt(transform.k));
-      circles.attr("r", 20 / Math.sqrt(transform.k));
-    });
-    svg
-      .call(zoom)
-      .call(zoom.transform, d3.zoomIdentity)
-      .on("pointermove", (event) => {
-        const p = transform.invert(d3.pointer(event));
-        const i = delaunay.find(...p);
-        circles.classed("highlighted", (_, j) => i === j);
-        d3.select(circles.nodes()[i]).raise();
-      })
-      .node();
-  }, []);
+  //draw walls
+  useEffect(() => {
+    let line;
+    const mousedown = (e) => {
+      if (selected === "wall") {
+        let coords = d3.pointer(e, svg);
+        coords = coords.map((coord) => Math.ceil(coord * 0.1) * 10 - ml);
+        line = svg
+          .append("line")
+          .attr("x1", coords[0])
+          .attr("y1", coords[1])
+          .attr("x2", coords[0])
+          .attr("y2", coords[1])
+          .attr("stroke", "#B4BDC1")
+          .attr("stroke-width", "10px");
+        svg.on("mousemove", mousemove);
+      }
+    };
 
-  //wall
-  useEffect(() => {}, [selected]);
+    const mousemove = (e) => {
+      if (selected === "wall") {
+        let coords = d3.pointer(e, svg);
+        coords = coords.map((coord) => Math.ceil(coord * 0.1) * 10 - ml);
+        line.attr("x2", coords[0]).attr("y2", coords[1]);
+      }
+    };
+
+    const mouseup = () => {
+      svg.on("mousemove", null);
+    };
+
+    let svg = d3
+      .select(".graph")
+      .on("mousedown", mousedown)
+      .on("mouseup", mouseup);
+  }, [selected]);
 
   return (
     <svg ref={svgRef} style={{ overflow: "visible" }}>
