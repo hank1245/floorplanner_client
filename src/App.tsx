@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/draw/:id" element={<Draw />} />
+          <Route path="/draw/:draftId" element={<Draw />} />
         </Routes>
       </div>
     </QueryClientProvider>

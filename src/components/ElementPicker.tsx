@@ -35,7 +35,6 @@ const ElementPicker = ({ setElement }: Props) => {
   const onClick = (e: React.MouseEvent) => {
     if (e.target instanceof Element) {
       setElement(e.target.id);
-      console.log(e.target.id);
     }
   };
 
