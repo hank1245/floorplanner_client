@@ -3,17 +3,55 @@ import * as d3 from "d3";
 import { ElementContext } from "../pages/Draw";
 import axios from "axios";
 import { drawRoute } from "../utils/APIRoute";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ControllerImg from "../assets/img/controller.svg";
 import SensorImg from "../assets/img/sensor.png";
 import HvacImg from "../assets/img/hvac.png";
 import DoorImg from "../assets/img/door.png";
 import WindowImg from "../assets/img/wndow.png";
+import styled from "styled-components";
 
-const Canvas = () => {
+const Container = styled.div`
+  z-index: -10;
+  cursor: ${(props) => (props.selected !== "" ? "crosshair" : "default")};
+  .menu {
+    position: absolute;
+    top: 20px;
+    display: flex;
+    width: 300px;
+  }
+  button {
+    z-index: 10;
+    padding: 10px 20px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    background: #000;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    appearance: button;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+  }
+  line {
+    .select {
+      color: red;
+      background-color: red;
+      outline: red;
+      border: red;
+    }
+  }
+`;
+
+const Canvas = ({ setElement }) => {
   const [walls, setWalls] = useState([]);
   const { draftId } = useParams();
   const [items, setItems] = useState([]);
+  const navigate = useNavigate();
 
   //global varibales
   const svgRef = useRef();
@@ -36,15 +74,17 @@ const Canvas = () => {
 
   //draw grid and scale, zoom, rener saved elements
   useEffect(() => {
+    console.log(selected);
     const svg = d3
       .select(svgRef.current)
       .attr("width", width)
-      .attr("height", height);
+      .attr("height", height)
+      .attr("transform", `translate(${ml}, ${mt})`);
     const graph = d3
       .select(".graph")
       .attr("width", graphWidth)
       .attr("height", graphHeight)
-      .attr("transform", `translate(${ml}, ${mt})`);
+      .attr("transform", `translate(0,0)`);
     const xScale = d3.scaleLinear().domain([0, width]).range([0, width]);
     const yScale = d3.scaleLinear().domain([0, height]).range([0, height]);
     const xAxis = d3.axisBottom(xScale);
@@ -63,7 +103,11 @@ const Canvas = () => {
       .attr("y2", (d) => d[3])
       .attr("stroke", "#B4BDC1")
       .attr("stroke-width", "10px")
-      .attr("class", "wall");
+      .attr("class", "wall")
+      .on("dblclick", (e) => {
+        d3.select(e.target).attr("class", "select");
+        console.log(e.target);
+      });
 
     const elements = graph
       .selectAll("image")
@@ -123,6 +167,7 @@ const Canvas = () => {
     const mousedown = (e) => {
       if (selected === "wall") {
         let coords = d3.pointer(e, graph);
+        console.log(coords);
         coords = coords.map((coord) => Math.ceil(coord * 0.1) * 10 - ml);
         line = graph
           .append("line")
@@ -132,7 +177,11 @@ const Canvas = () => {
           .attr("y2", coords[1])
           .attr("stroke", "#B4BDC1")
           .attr("stroke-width", "10px")
-          .attr("class", "wall");
+          .attr("class", "wall")
+          .on("dblclick", (e) => {
+            d3.select(e.target).attr("class", "select");
+            console.log(e.target);
+          });
         graph.on("mousemove", mousemove);
       }
     };
@@ -215,7 +264,52 @@ const Canvas = () => {
     }
   }, [selected, items]);
 
-  //drag items
+  //select items and drag or delete
+  useEffect(() => {
+    if (selected !== "selection") return;
+    const elements = d3.selectAll("image").raise();
+    elements.each(function (d, i) {
+      items[i] &&
+        d3
+          .select(this)
+          .attr("x", items[i].x - 10)
+          .attr("y", items[i].y - 10);
+    });
+    elements.on("mousedown", (e) => {
+      const { id } = e.target;
+      updateMousePos(elements, id);
+    });
+    elements.on("dblclick", (e) => {
+      d3.select(e.target).attr("class", "select");
+      console.log(e.target);
+    });
+
+    elements.on("mouseout", (e) => {
+      elements.on("mousemove", null);
+    });
+
+    const updateMousePos = (elements, id) => {
+      elements.on("mousemove", (e) => {
+        let coords = d3.pointer(e, elements);
+        let newItem = items;
+        newItem.forEach((item) => {
+          if (Number(item.id) === Number(id)) {
+            item.x = coords[0] - ml;
+            item.y = coords[1] - mt;
+          }
+        });
+        setItems([...newItem]);
+      });
+
+      elements.on("mouseup", () => {
+        fixMousePos(elements);
+      });
+
+      const fixMousePos = (elements) => {
+        elements.on("mousemove", null);
+      };
+    };
+  }, [selected, items]);
 
   //save draw
   const onClick = async () => {
@@ -228,7 +322,7 @@ const Canvas = () => {
   };
 
   return (
-    <>
+    <Container selected={selected}>
       <svg ref={svgRef} style={{ overflow: "visible" }}>
         <g className="graph">
           <g className="x-axis"></g>
@@ -265,8 +359,12 @@ const Canvas = () => {
           <rect width="100%" height="100%" fill="url(#grid)" className="grid" />
         </g>
       </svg>
-      <button onClick={onClick}>저장</button>
-    </>
+      <div className="menu">
+        <button onClick={onClick}>저장</button>
+        <button onClick={() => navigate("/")}>나가기</button>
+        <button onClick={() => setElement("selection")}>선택</button>
+      </div>
+    </Container>
   );
 };
 

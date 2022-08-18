@@ -2,6 +2,7 @@ import styled from "styled-components";
 import ElementPicker from "../components/ElementPicker";
 import Canvas from "../components/Canvas";
 import React, { useState, useEffect, useCallback } from "react";
+import * as d3 from "d3";
 
 export const ElementContext = React.createContext<string>("");
 
@@ -18,6 +19,11 @@ const Draw = () => {
       console.log("keyboard");
       setElement("");
     }
+    if (event.key === "Backspace") {
+      console.log("del");
+      const delItem = d3.select(".select");
+      d3.select(".select").remove();
+    }
   }, []);
 
   useEffect(() => {
@@ -30,7 +36,7 @@ const Draw = () => {
   return (
     <Container>
       <ElementContext.Provider value={element}>
-        <Canvas />
+        <Canvas setElement={setElement} />
         <ElementPicker setElement={setElement} />
       </ElementContext.Provider>
     </Container>
