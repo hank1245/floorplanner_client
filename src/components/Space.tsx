@@ -73,17 +73,16 @@ interface Draft {
 }
 
 const Card = ({ name, description, _id }: Draft) => {
-  const onClick = () => {};
   return (
-    <div className="card-container" onClick={onClick}>
-      <Link to={`/draw/${_id}`}>
+    <Link to={`/draw/${_id}`}>
+      <div className="card-container">
         <div className="card-name">{name}</div>
         <div className="card-description">
           <p>{description}</p>
         </div>
-      </Link>
-      <div className="card-tool"></div>
-    </div>
+        <div className="card-tool"></div>
+      </div>
+    </Link>
   );
 };
 

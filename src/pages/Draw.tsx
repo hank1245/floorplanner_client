@@ -9,7 +9,7 @@ export const ElementContext = React.createContext<string>("");
 const Container = styled.div`
   background-color: #f5f6fa;
   width: 100vw;
-  height: 100vh;
+  height: 120vh;
 `;
 
 const Draw = () => {
