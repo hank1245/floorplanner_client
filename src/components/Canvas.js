@@ -62,6 +62,12 @@ const Canvas = ({ setElement }) => {
   const graphWidth = width - ml - mr;
   const graphHeight = height - mt - mb;
 
+  const ceilCoords = ([x, y]) => {
+    const newX = Math.ceil(x * 0.1) * 10 - ml;
+    const newY = Math.ceil(y * 0.1) * 10 - mt;
+    return [newX, newY];
+  };
+
   //fetch wall data
   useEffect(() => {
     const fetchDraws = async () => {
@@ -171,8 +177,7 @@ const Canvas = ({ setElement }) => {
     const mousedown = (e) => {
       if (selected === "wall") {
         let coords = d3.pointer(e, graph);
-        console.log(coords);
-        coords = coords.map((coord) => Math.ceil(coord * 0.1) * 10 - ml);
+        coords = ceilCoords(coords);
         line = graph
           .append("line")
           .attr("x1", coords[0])
@@ -193,7 +198,7 @@ const Canvas = ({ setElement }) => {
     const mousemove = (e) => {
       if (selected === "wall") {
         let coords = d3.pointer(e, graph);
-        coords = coords.map((coord) => Math.ceil(coord * 0.1) * 10 - ml);
+        coords = ceilCoords(coords);
         line.attr("x2", coords[0]).attr("y2", coords[1]);
       }
     };
@@ -256,7 +261,7 @@ const Canvas = ({ setElement }) => {
 
       graph.on("click", (e) => {
         let coords = d3.pointer(e, graph);
-        coords = coords.map((coord) => coord - ml);
+        coords = ceilCoords(coords);
         let newItem = {
           id: [...items].length,
           x: coords[0],
@@ -270,49 +275,25 @@ const Canvas = ({ setElement }) => {
 
   //select items and drag or delete
   useEffect(() => {
-    if (selected !== "selection") return;
-    const elements = d3.selectAll("image").raise();
-    elements.each(function (d, i) {
-      items[i] &&
+    const elements = d3
+      .selectAll("image")
+      .call(
         d3
-          .select(this)
-          .attr("x", items[i].x - 10)
-          .attr("y", items[i].y - 10);
-    });
-    elements.on("mousedown", (e) => {
-      const { id } = e.target;
-      updateMousePos(elements, id);
-    });
-    elements.on("dblclick", (e) => {
-      d3.select(e.target).attr("class", "select");
-      console.log(e.target);
-    });
-
-    elements.on("mouseout", (e) => {
-      elements.on("mousemove", null);
-    });
-
-    const updateMousePos = (elements, id) => {
-      elements.on("mousemove", (e) => {
-        let coords = d3.pointer(e, elements);
-        let newItem = items;
-        newItem.forEach((item) => {
-          if (Number(item.id) === Number(id)) {
-            item.x = coords[0] - ml;
-            item.y = coords[1] - mt;
-          }
-        });
-        setItems([...newItem]);
-      });
-
-      elements.on("mouseup", () => {
-        fixMousePos(elements);
-      });
-
-      const fixMousePos = (elements) => {
-        elements.on("mousemove", null);
-      };
-    };
+          .drag()
+          .on("start", function (e, d) {
+            d3.select(this).raise().classed("active", true);
+          })
+          .on("drag", function (e, d) {
+            console.log(d);
+            d3.select(this)
+              .attr("x", (d.x = e.x))
+              .attr("y", (d.y = e.y));
+          })
+          .on("end", function (e, d) {
+            d3.select(this).classed("active", false);
+          })
+      )
+      .raise();
   }, [selected, items]);
 
   //save draw
