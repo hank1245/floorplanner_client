@@ -1,6 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { ElementContext } from "../pages/Draw";
 import axios from "axios";
 import { drawRoute } from "../utils/APIRoute";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,10 +9,13 @@ import HvacImg from "../assets/img/hvac.png";
 import DoorImg from "../assets/img/door.png";
 import WindowImg from "../assets/img/wndow.png";
 import styled from "styled-components";
+import { useDispatch, useSelector } from "react-redux";
+import { setItems, addItem, moveItem } from "../features/itemSlice";
+import { setWalls, addWall } from "../features/wallSlice";
 
 const Container = styled.div`
   z-index: -10;
-  cursor: ${(props) => (props.selected !== "" ? "crosshair" : "default")};
+  cursor: ${(props) => (props.mode !== "zoom" ? "crosshair" : "default")};
   .menu {
     position: absolute;
     top: 20px;
@@ -37,25 +39,22 @@ const Container = styled.div`
     justify-content: center;
     margin-left: 10px;
   }
-  line {
-    .select {
-      color: red;
-      background-color: red;
-      outline: red;
-      border: red;
-    }
+  .select {
+    background-color: red;
   }
 `;
 
-const Canvas = ({ setElement }) => {
-  const [walls, setWalls] = useState([]);
+const Canvas = () => {
   const { draftId } = useParams();
-  const [items, setItems] = useState([]);
   const navigate = useNavigate();
+  const { mode } = useSelector((state) => state.mode);
+  const { items } = useSelector((state) => state.item);
+  const { walls } = useSelector((state) => state.wall);
+
+  const dispatch = useDispatch();
 
   //global varibales
   const svgRef = useRef();
-  const selected = useContext(ElementContext);
   const width = 1000;
   const height = 800;
   let [mt, mb, mr, ml] = [100, 100, 100, 100];
@@ -72,15 +71,15 @@ const Canvas = ({ setElement }) => {
   useEffect(() => {
     const fetchDraws = async () => {
       const { data } = await axios.get(drawRoute, { params: { draftId } });
-      setWalls([...data.walls]);
-      setItems([...data.items]);
+      dispatch(setWalls(data.walls));
+      dispatch(setItems(data.items));
     };
     fetchDraws();
   }, []);
 
   //draw grid and scale, zoom, rener saved elements
   useEffect(() => {
-    console.log(selected);
+    console.log(mode);
     const svg = d3
       .select(svgRef.current)
       .attr("width", width)
@@ -151,7 +150,7 @@ const Canvas = ({ setElement }) => {
       (d) => yScale(d[1])
     );
     let transform;
-    if (selected == "") {
+    if (mode === "zoom") {
       const zoom = d3.zoom().on("zoom", (e) => {
         graph.attr("transform", (transform = e.transform));
         graph.style("stroke-width", 3 / Math.sqrt(transform.k));
@@ -169,16 +168,17 @@ const Canvas = ({ setElement }) => {
     } else {
       svg.on(".zoom", null);
     }
-  }, [selected, walls]);
+  }, [mode, walls]);
 
   //draw walls
   useEffect(() => {
     let line;
     const mousedown = (e) => {
-      if (selected === "wall") {
+      if (mode === "wall") {
         let coords = d3.pointer(e, graph);
         coords = ceilCoords(coords);
         line = graph
+          .append("g")
           .append("line")
           .attr("x1", coords[0])
           .attr("y1", coords[1])
@@ -187,16 +187,16 @@ const Canvas = ({ setElement }) => {
           .attr("stroke", "#B4BDC1")
           .attr("stroke-width", "10px")
           .attr("class", "wall")
-          .on("dblclick", (e) => {
-            d3.select(e.target).attr("class", "select");
-            console.log(e.target);
+          .on("click", (e) => {
+            d3.select(e.target.parentElement).attr("class", "select");
+            console.log(e.target.parentElement);
           });
         graph.on("mousemove", mousemove);
       }
     };
 
     const mousemove = (e) => {
-      if (selected === "wall") {
+      if (mode === "wall") {
         let coords = d3.pointer(e, graph);
         coords = ceilCoords(coords);
         line.attr("x2", coords[0]).attr("y2", coords[1]);
@@ -204,14 +204,14 @@ const Canvas = ({ setElement }) => {
     };
 
     const mouseup = () => {
-      if (selected === "wall") {
+      if (mode === "wall") {
         graph.on("mousemove", null);
         const x1 = Number(line.attr("x1"));
         const y1 = Number(line.attr("y1"));
         const x2 = Number(line.attr("x2"));
         const y2 = Number(line.attr("y2"));
         const newWall = [x1, y1, x2, y2];
-        setWalls((walls) => [...walls, newWall]);
+        dispatch(addWall(newWall));
       }
     };
 
@@ -219,22 +219,22 @@ const Canvas = ({ setElement }) => {
       .select(".graph")
       .on("mousedown", mousedown)
       .on("mouseup", mouseup);
-  }, [selected, walls]);
+  }, [mode, walls]);
 
   //place items
   useEffect(() => {
-    const addElements = (selected) => {
+    const addElements = (mode) => {
       const graph = d3.select(".graph");
       let currentIcon;
-      if (selected === "controller") {
+      if (mode === "controller") {
         currentIcon = ControllerImg;
-      } else if (selected === "sensor") {
+      } else if (mode === "sensor") {
         currentIcon = SensorImg;
-      } else if (selected === "hvac") {
+      } else if (mode === "hvac") {
         currentIcon = HvacImg;
-      } else if (selected === "door") {
+      } else if (mode === "door") {
         currentIcon = DoorImg;
-      } else if (selected === "window") {
+      } else if (mode === "window") {
         currentIcon = WindowImg;
       } else {
         return;
@@ -253,7 +253,7 @@ const Canvas = ({ setElement }) => {
       return elements;
     };
     const graph = d3.select(".graph");
-    const elements = addElements(selected);
+    const elements = addElements(mode);
     if (elements) {
       elements.each(function (d, i) {
         d3.select(this).attr("id", i);
@@ -263,15 +263,15 @@ const Canvas = ({ setElement }) => {
         let coords = d3.pointer(e, graph);
         coords = ceilCoords(coords);
         let newItem = {
-          id: [...items].length,
+          id: items.length,
           x: coords[0],
           y: coords[1],
-          name: selected,
+          name: mode,
         };
-        setItems([...items, newItem]);
+        addItem(newItem);
       });
     }
-  }, [selected, items]);
+  }, [mode, items]);
 
   //select items and drag or delete
   useEffect(() => {
@@ -280,21 +280,30 @@ const Canvas = ({ setElement }) => {
       .call(
         d3
           .drag()
-          .on("start", function (e, d) {
+          .on("start", function () {
             d3.select(this).raise().classed("active", true);
           })
-          .on("drag", function (e, d) {
-            console.log(d);
-            d3.select(this)
-              .attr("x", (d.x = e.x))
-              .attr("y", (d.y = e.y));
+          .on("drag", function (event, d) {
+            d3.select(this).attr("x", event.x).attr("y", event.y);
+            dispatch(
+              moveItem({
+                id: d.id,
+                name: d.name,
+                x: event.x,
+                y: event.y,
+              })
+            );
           })
-          .on("end", function (e, d) {
+          .on("end", function () {
             d3.select(this).classed("active", false);
           })
       )
       .raise();
-  }, [selected, items]);
+    elements.on("click", (e, d) => {
+      d3.selectAll("g").classed("select", false);
+      d3.select(e.target.parentElement).classed("select", true);
+    });
+  }, [mode, items]);
 
   //save draw
   const onClick = async () => {
@@ -307,7 +316,7 @@ const Canvas = ({ setElement }) => {
   };
 
   return (
-    <Container selected={selected}>
+    <Container mode={mode}>
       <svg ref={svgRef} style={{ overflow: "visible" }}>
         <g className="graph">
           <g className="x-axis"></g>
@@ -347,7 +356,6 @@ const Canvas = ({ setElement }) => {
       <div className="menu">
         <button onClick={onClick}>저장</button>
         <button onClick={() => navigate("/")}>나가기</button>
-        <button onClick={() => setElement("selection")}>선택</button>
       </div>
     </Container>
   );

@@ -1,11 +1,7 @@
 import styled from "styled-components";
 import ElementPicker from "../components/ElementPicker";
 import Canvas from "../components/Canvas";
-import React, { useState, useEffect, useCallback } from "react";
-import * as d3 from "d3";
-
-export const ElementContext = React.createContext<string>("");
-
+import { useKeyboard } from "../hooks/useKeyboard";
 const Container = styled.div`
   background-color: #f5f6fa;
   width: 100vw;
@@ -13,32 +9,12 @@ const Container = styled.div`
 `;
 
 const Draw = () => {
-  const [element, setElement] = useState<string>("");
-  const escFunction = useCallback((event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      console.log("keyboard");
-      setElement("");
-    }
-    if (event.key === "Backspace") {
-      console.log("del");
-      const delItem = d3.select(".select");
-      d3.select(".select").remove();
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener("keydown", escFunction, false);
-    return () => {
-      document.removeEventListener("keydown", escFunction, false);
-    };
-  }, []);
+  useKeyboard();
 
   return (
     <Container>
-      <ElementContext.Provider value={element}>
-        <Canvas setElement={setElement} />
-        <ElementPicker setElement={setElement} />
-      </ElementContext.Provider>
+      <Canvas />
+      <ElementPicker />
     </Container>
   );
 };

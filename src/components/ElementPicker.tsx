@@ -5,6 +5,8 @@ import { BsFillDoorOpenFill } from "react-icons/bs";
 import { MdOutlineSensors, MdWindow, MdHvac } from "react-icons/md";
 import { GiBrickWall } from "react-icons/gi";
 import { AiOutlineStop } from "react-icons/ai";
+import { useDispatch } from "react-redux";
+import { changeMode } from "../features/modeSlice";
 
 const Container = styled.div`
   position: absolute;
@@ -27,14 +29,11 @@ const Icon = styled.div`
   }
 `;
 
-interface Props {
-  setElement: (element: string) => void;
-}
-
-const ElementPicker = ({ setElement }: Props) => {
+const ElementPicker = () => {
+  const dispatch = useDispatch();
   const onClick = (e: React.MouseEvent) => {
     if (e.target instanceof Element) {
-      setElement(e.target.id);
+      dispatch(changeMode(e.target.id));
     }
   };
 

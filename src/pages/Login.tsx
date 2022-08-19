@@ -18,11 +18,15 @@ export interface LoginData {
 }
 
 const Container = styled.div`
+  background-color: #f5f6fa;
+  width: 50%;
+  padding: 20px 0;
+  margin: 100px auto;
+  border-radius: 15px;
   .heading {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 50px;
-    margin-top: 10%;
     padding: 0 20px;
     h1 {
       text-align: center;
@@ -30,7 +34,7 @@ const Container = styled.div`
   }
   .form,
   .content {
-    width: 40%;
+    width: 70%;
     margin: 0 auto;
   }
 
@@ -96,20 +100,20 @@ function Login() {
     }
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const userData: UserData = {
       email,
       password,
     };
-    login(loginRoute, userData);
+    await login(loginRoute, userData);
   };
 
   return (
     <Container>
       <section className="heading">
         <h1>
-          <FaSignInAlt /> 로그인
+          <FaSignInAlt /> Draft
         </h1>
       </section>
       <section className="form">

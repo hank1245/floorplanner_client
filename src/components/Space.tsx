@@ -32,8 +32,10 @@ const Container = styled.div`
   }
   .card-container {
     display: flex;
+    position: relative;
     flex-direction: column;
     background-color: white;
+    border-radius: 8px;
     width: 300px;
     height: 160px;
     margin-top: 50px;
@@ -41,8 +43,26 @@ const Container = styled.div`
     padding: 20px;
     border: 1px solid #b2bec3;
     cursor: pointer;
+    overflow: hidden;
     &:hover {
       box-shadow: 0px 0px 5px #444;
+      .card-tool {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 35px;
+        background-color: #212529;
+        color: white;
+        div {
+          flex-basis: 50%;
+          padding: 5px;
+          text-align: center;
+        }
+      }
     }
   }
   .card-name {
@@ -52,6 +72,12 @@ const Container = styled.div`
   }
   .card-description {
     color: #636e72;
+    p {
+      margin-bottom: 10px;
+    }
+  }
+  .card-tool {
+    display: none;
   }
 `;
 
@@ -70,19 +96,29 @@ interface Draft {
   _id: string;
   name: string;
   description: string;
+  createdAt: string;
 }
 
-const Card = ({ name, description, _id }: Draft) => {
+const Card = ({ name, description, _id, createdAt }: Draft) => {
+  const onDelete = (name: string) => {
+    if (window.confirm(`${name}을 삭제하시겠습니까?`)) {
+    }
+  };
   return (
-    <Link to={`/draw/${_id}`}>
+    <>
       <div className="card-container">
-        <div className="card-name">{name}</div>
-        <div className="card-description">
-          <p>{description}</p>
+        <Link to={`/draw/${_id}`}>
+          <div className="card-name">{name}</div>
+          <div className="card-description">
+            <p>{description}</p>
+            <p>생성일자:{createdAt}</p>
+          </div>
+        </Link>
+        <div className="card-tool">
+          <div onClick={() => onDelete(name)}>삭제</div>
         </div>
-        <div className="card-tool"></div>
       </div>
-    </Link>
+    </>
   );
 };
 
@@ -114,11 +150,14 @@ const Space = () => {
       <Button onClick={onClick}>새 도안 만들기</Button>
       <div className="card-parent">
         {drafts.map((draft: Draft, index: number) => {
+          const date = new Date(draft.createdAt);
+          const localString = date.toLocaleString("ko");
           return (
             <Card
               key={index}
               _id={draft._id}
               name={draft.name}
+              createdAt={localString}
               description={draft.description}
             />
           );
