@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { draftRoute } from "../utils/APIRoute";
 import axios from "axios";
+import { useMutation } from "react-query";
 
 const Container = styled.div`
   position: absolute;
@@ -76,20 +77,22 @@ const Modal = ({ open }: Props) => {
     open(false);
   };
 
-  const createDraft = async (draftRoute: string, draftData: DraftData) => {
-    const response = await axios.post(draftRoute, draftData);
-    return response.data;
-  };
-
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     open(false);
+    await createDraft(draftRoute);
+  };
+
+  const createDraft = async (draftRoute: string) => {
     const draftData = {
       name: formData.name,
       description: formData.description,
     };
-    createDraft(draftRoute, draftData);
+    const response = await axios.post(draftRoute, draftData);
+    return response.data;
   };
+
+  const { isLoading } = useMutation(createDraft);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

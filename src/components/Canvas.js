@@ -284,6 +284,7 @@ const Canvas = () => {
             d3.select(this).raise().classed("active", true);
           })
           .on("drag", function (event, d) {
+            console.log(event.x, event.y);
             d3.select(this).attr("x", event.x).attr("y", event.y);
             dispatch(
               moveItem({
@@ -304,6 +305,35 @@ const Canvas = () => {
       d3.select(e.target.parentElement).classed("select", true);
     });
   }, [mode, items]);
+
+  //add length indicator at wall
+  useEffect(() => {
+    d3.selectAll(".wall").on("focus", (e, d) => {
+      const line = d3.select(e.target);
+      const x1 = line.attr("x1");
+      const y1 = line.attr("y1");
+      const x2 = line.attr("x2");
+      const y2 = line.attr("y2");
+      d3.select(e.target.parentElement)
+        .append("line")
+        .attr("x1", Number(x1) + 10)
+        .attr("y1", y1)
+        .attr("x2", Number(x2) + 10)
+        .attr("y2", y2)
+        .attr("class", "indicator")
+        .style("stroke", "red");
+      d3.select(e.target.parentElement)
+        .append("text")
+        .attr("x", (Number(x1) + Number(x2)) / 2)
+        .attr("y", (Number(y1) + Number(y2)) / 2)
+        .text(`${Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)}`)
+        .style("font-size", "15px")
+        .raise()
+        .on("blur", function (e) {
+          d3.selectAll(".indicator").remove();
+        });
+    });
+  });
 
   //save draw
   const onClick = async () => {

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Modal from "./Modal";
 import { draftRoute } from "../utils/APIRoute";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { Link, useNavigate } from "react-router-dom";
 
 const Container = styled.div`
@@ -100,8 +100,19 @@ interface Draft {
 }
 
 const Card = ({ name, description, _id, createdAt }: Draft) => {
-  const onDelete = (name: string) => {
+  const deleteDraft = async () => {
+    const response = await axios.delete(draftRoute, {
+      data: { name },
+    });
+    const { data } = response;
+    return data;
+  };
+
+  const { isLoading } = useMutation(deleteDraft);
+
+  const onDelete = async (name: string) => {
     if (window.confirm(`${name}을 삭제하시겠습니까?`)) {
+      await deleteDraft();
     }
   };
   return (
