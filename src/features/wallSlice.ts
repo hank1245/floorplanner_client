@@ -1,6 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type wall = number[];
+interface wall {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
 
 interface InitialState {
   walls: wall[];
@@ -20,7 +26,10 @@ export const wallSlice = createSlice({
     addWall: (state, action) => {
       state.walls.push(action.payload);
     },
-    removeWall: (state, action) => {},
+    removeWall: (state, action) => {
+      state.walls = state.walls.filter((wall) => wall.id !== action.payload);
+      console.log(state.walls);
+    },
   },
 });
 

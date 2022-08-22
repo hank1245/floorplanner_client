@@ -4,6 +4,7 @@ interface Item {
   id: number;
   x: number;
   y: number;
+  name: string;
 }
 
 interface InitialState {
@@ -18,19 +19,18 @@ export const itemSlice = createSlice({
   name: "item",
   initialState,
   reducers: {
-    setItems: (state, action) => {
-      state.items = action.payload;
-    },
     addItem: (state, action) => {
       state.items.push(action.payload);
     },
+    setItems: (state, action) => {
+      state.items = action.payload;
+    },
     removeItem: (state, action) => {
       state.items = state.items.filter((item) => item.id !== action.payload);
+      console.log(state.items);
     },
     moveItem: (state, action) => {
       const movedItem = action.payload;
-      console.log(movedItem);
-
       const filteredItems = state.items.filter(
         (item) => item.id !== movedItem.id
       );

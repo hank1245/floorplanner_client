@@ -36,10 +36,10 @@ const Container = styled.div`
     flex-direction: column;
     background-color: white;
     border-radius: 8px;
-    width: 300px;
+    width: 280px;
     height: 160px;
     margin-top: 50px;
-    margin-right: 50px;
+    margin-right: 30px;
     padding: 20px;
     border: 1px solid #b2bec3;
     cursor: pointer;

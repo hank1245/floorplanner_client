@@ -104,16 +104,16 @@ const Canvas = () => {
       .append("g")
       .attr("class", "wall")
       .append("line")
-      .attr("x1", (d) => d[0])
-      .attr("y1", (d) => d[1])
-      .attr("x2", (d) => d[2])
-      .attr("y2", (d) => d[3])
+      .attr("x1", (d) => d.x1)
+      .attr("y1", (d) => d.y1)
+      .attr("x2", (d) => d.x2)
+      .attr("y2", (d) => d.y2)
       .attr("stroke", "#B4BDC1")
       .attr("stroke-width", "10px")
       .attr("class", "wall")
-      .on("dblclick", (e) => {
-        d3.select(e.target).attr("class", "select");
-        console.log(e.target);
+      .on("click", (e) => {
+        d3.selectAll("g").classed("select", false);
+        d3.select(e.target).classed("select", true);
       });
 
     const elements = graph
@@ -187,9 +187,9 @@ const Canvas = () => {
           .attr("stroke", "#B4BDC1")
           .attr("stroke-width", "10px")
           .attr("class", "wall")
-          .on("click", (e) => {
-            d3.select(e.target.parentElement).attr("class", "select");
-            console.log(e.target.parentElement);
+          .on("click", (e, d) => {
+            d3.selectAll("g").classed("select", false);
+            d3.select(e.target.parent).classed("select", true);
           });
         graph.on("mousemove", mousemove);
       }
@@ -210,7 +210,7 @@ const Canvas = () => {
         const y1 = Number(line.attr("y1"));
         const x2 = Number(line.attr("x2"));
         const y2 = Number(line.attr("y2"));
-        const newWall = [x1, y1, x2, y2];
+        const newWall = { id: walls.length, x1, y1, x2, y2 };
         dispatch(addWall(newWall));
       }
     };
@@ -268,7 +268,7 @@ const Canvas = () => {
           y: coords[1],
           name: mode,
         };
-        addItem(newItem);
+        dispatch(addItem(newItem));
       });
     }
   }, [mode, items]);
